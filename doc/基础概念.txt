@@ -1,0 +1,12 @@
+flink state
+
+1 operator state
+2 keyed state
+
+master          slave(worked)
+
+spark:
+    driver      executor
+
+flink:
+    jobmanager  taskmanager
