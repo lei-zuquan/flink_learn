@@ -25,11 +25,14 @@ object C_03StreamApiApp {
 
     val kafkaConsumer = MyKafkaUtil.getConsumer("GMALL_STARTUP")
 
+    /*
+    {"area":"bei jing","uid":"226","os":"android","ch":"baidu","appid":"gmall1205","mid":"mid_336","type":"startup","vs":"1.1.3","ts":1559801977906}
+     */
     val dstream: DataStream[String] = environment.addSource(kafkaConsumer)
 
 
     // DataStream这种流是无状态
-    //val startuplogDstream: DataStream[Startuplog] = dstream.map { jsonStr => JSON.parseObject(jsonStr, classOf[Startuplog]) }
+    val startuplogDstream: DataStream[Startuplog] = dstream.map { jsonStr => JSON.parseObject(jsonStr, classOf[Startuplog]) }
     dstream.print()
 
 //    /**
