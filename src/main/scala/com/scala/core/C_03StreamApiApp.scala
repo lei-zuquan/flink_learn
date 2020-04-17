@@ -1,10 +1,10 @@
 package com.scala.core
 
 import com.alibaba.fastjson.JSON
-import com.scala.core.bean.Startuplog
+import com.scala.core.bean.StartUpLog
 import com.scala.core.util.MyKafkaUtil
 import org.apache.flink.api.java.tuple.Tuple
-import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, SplitStream, StreamExecutionEnvironment}
+import org.apache.flink.streaming.api.scala.{ConnectedStreams, DataStream, KeyedStream, SplitStream, StreamExecutionEnvironment}
 import org.apache.flink.api.scala._
 
 
@@ -32,8 +32,8 @@ object C_03StreamApiApp {
 
 
     // DataStream这种流是无状态
-    val startuplogDstream: DataStream[Startuplog] = dstream.map { jsonStr => JSON.parseObject(jsonStr, classOf[Startuplog]) }
-    dstream.print()
+    val startuplogDstream: DataStream[StartUpLog] = dstream.map { jsonStr => JSON.parseObject(jsonStr, classOf[StartUpLog]) }
+    startuplogDstream.print()
 
 //    /**
 //     * 统计各个渠道的累计个数
@@ -45,8 +45,38 @@ object C_03StreamApiApp {
 //    //dstream.print()
 //    chSumDstream.print("开头：").setParallelism(1)
 
-//G
+    // 将appstore与其他渠道拆分拆分出来  成为两个独立的流
+    val splitStream: SplitStream[StartUpLog] = startuplogDstream.split { startUplog =>
+      var flags:List[String] =  null
+      if ("appstore" == startUplog.ch) {
+        flags = List("apple", "usa")
+      } else if ("huawei" == startUplog){
+        flags = List("android", "china")
+      } else {
+        flags = List("android", "other" )
+      }
+      flags
+    }
+    val appleStream: DataStream[StartUpLog] = splitStream.select("apple", "china")
+    appleStream.print("apple:").setParallelism(1)
+    val otherStream: DataStream[StartUpLog] = splitStream.select("other")
+    otherStream.print("other:").setParallelism(1)
+    
 
+    // 合并流，方式一：connect合并流前后两者数据类型可不一致，后续通过coMap等进行数据的统一
+    // connect一次只能合并两个流
+    val connStream: ConnectedStreams[StartUpLog, StartUpLog] = appleStream.connect(otherStream)
+    val allStream: DataStream[String] = connStream.map(
+      (startupLog1: StartUpLog) => startupLog1.ch,
+      (startupLog2: StartUpLog) => startupLog2.ch
+    )
+    allStream.print("All")
+
+    // 合并流，方式二：使用union合并的前提上两个流的数据类型是一致的
+    // union一次可以合并多个流
+    val unionStream: DataStream[StartUpLog] = appleStream.union(otherStream)
+    unionStream.print("Union")
+    
     environment.execute()
   }
 
