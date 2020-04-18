@@ -6,6 +6,7 @@ import com.scala.core.util.MyKafkaUtil
 import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.streaming.api.scala.{ConnectedStreams, DataStream, KeyedStream, SplitStream, StreamExecutionEnvironment}
 import org.apache.flink.api.scala._
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 
 
 /**
@@ -26,7 +27,9 @@ object C_03StreamApiApp {
     val kafkaConsumer = MyKafkaUtil.getConsumer("GMALL_STARTUP")
 
     /*
-    {"area":"bei jing","uid":"226","os":"android","ch":"baidu","appid":"gmall1205","mid":"mid_336","type":"startup","vs":"1.1.3","ts":1559801977906}
+    {"area":"bei jing","uid":"226","os":"android","ch":"huawei","appid":"gmall1205","mid":"mid_336","type":"startup","vs":"1.1.3","ts":1559801977906}
+    {"area":"shen zhen","uid":"226","os":"ios","ch":"apple","appstore":"gmall1205","mid":"mid_336","type":"startup","vs":"1.1.3","ts":1559801977906}
+
      */
     val dstream: DataStream[String] = environment.addSource(kafkaConsumer)
 
@@ -76,6 +79,9 @@ object C_03StreamApiApp {
     // union一次可以合并多个流
     val unionStream: DataStream[StartUpLog] = appleStream.union(otherStream)
     unionStream.print("Union")
+
+    val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
+    unionStream.map(startUpLog => startUpLog.ch).addSink(kafkaSink)
     
     environment.execute()
   }

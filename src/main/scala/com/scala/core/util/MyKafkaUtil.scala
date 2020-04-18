@@ -3,7 +3,8 @@ package com.scala.core.util
 import java.util.Properties
 
 import org.apache.flink.api.common.serialization.SimpleStringSchema
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
+import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
+import org.apache.flink.api.scala._
 
 /**
  * @Author: Lei
@@ -34,10 +35,11 @@ object MyKafkaUtil {
       new FlinkKafkaConsumer011[String](topic, new SimpleStringSchema(), prop)
 
     myKafkaConsumer
-
-
   }
 
-
+  def getKafkaSink(topic:String): FlinkKafkaProducer011[String] = {
+    val kafkaSink = new FlinkKafkaProducer011[String](kafka_broker_list, topic, new SimpleStringSchema())
+    kafkaSink
+  }
 
 }
