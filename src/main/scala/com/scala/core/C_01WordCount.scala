@@ -12,7 +12,7 @@ import org.apache.flink.api.scala.{AggregateDataSet, DataSet}
  * @Modified By:
  * @Description:
  */
-object WordCount {
+object C_01WordCount {
   def main(args: Array[String]): Unit = {
     // 核心思路：1/env   2/source    3/transform   4/sink
 

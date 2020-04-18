@@ -12,7 +12,7 @@ import org.apache.flink.api.scala._
  * @Modified By:
  * @Description:
  */
-object DataStreamWcApp {
+object C_02DataStreamWcApp {
   def main(args: Array[String]): Unit = {
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment

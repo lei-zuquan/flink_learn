@@ -68,12 +68,12 @@ object C_03StreamApiApp {
 
     // 合并流，方式一：connect合并流前后两者数据类型可不一致，后续通过coMap等进行数据的统一
     // connect一次只能合并两个流
-    val connStream: ConnectedStreams[StartUpLog, StartUpLog] = appleStream.connect(otherStream)
-    val allStream: DataStream[String] = connStream.map(
-      (startupLog1: StartUpLog) => startupLog1.ch,
-      (startupLog2: StartUpLog) => startupLog2.ch
-    )
-    allStream.print("All")
+//    val connStream: ConnectedStreams[StartUpLog, StartUpLog] = appleStream.connect(otherStream)
+//    val allStream: DataStream[String] = connStream.map(
+//      (startupLog1: StartUpLog) => startupLog1.ch,
+//      (startupLog2: StartUpLog) => startupLog2.ch
+//    )
+//    allStream.print("All")
 
     // 合并流，方式二：使用union合并的前提上两个流的数据类型是一致的
     // union一次可以合并多个流
@@ -81,8 +81,8 @@ object C_03StreamApiApp {
     unionStream.print("Union")
 
     // 将合并流写入到KAFKA中
-    val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
-    unionStream.map(startUpLog => startUpLog.ch).addSink(kafkaSink)
+    //val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
+    //unionStream.map(startUpLog => startUpLog.ch).addSink(kafkaSink)
 
 
     /**
@@ -103,7 +103,7 @@ object C_03StreamApiApp {
      */
     // 把结果存入redis   hset  key:channel_sum   field:  channel   value:  count
     val redisSink: RedisSink[(String, String)] = MyRedisUtil.getRedisSink()
-    chSumDstream.addSink(redisSink)
+    //chSumDstream.addSink(redisSink)
 
 
     environment.execute()

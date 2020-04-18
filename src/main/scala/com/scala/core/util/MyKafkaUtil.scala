@@ -37,9 +37,9 @@ object MyKafkaUtil {
     myKafkaConsumer
   }
 
-  def getKafkaSink(topic:String): FlinkKafkaProducer011[String] = {
-    val kafkaSink = new FlinkKafkaProducer011[String](kafka_broker_list, topic, new SimpleStringSchema())
-    kafkaSink
-  }
+//  def getKafkaSink(topic:String): FlinkKafkaProducer011[String] = {
+//    val kafkaSink = new FlinkKafkaProducer011[String](kafka_broker_list, topic, new SimpleStringSchema())
+//    kafkaSink
+//  }
 
 }
