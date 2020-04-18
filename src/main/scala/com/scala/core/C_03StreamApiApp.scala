@@ -2,11 +2,12 @@ package com.scala.core
 
 import com.alibaba.fastjson.JSON
 import com.scala.core.bean.StartUpLog
-import com.scala.core.util.MyKafkaUtil
+import com.scala.core.util.{MyKafkaUtil, MyRedisUtil}
 import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.streaming.api.scala.{ConnectedStreams, DataStream, KeyedStream, SplitStream, StreamExecutionEnvironment}
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
+import org.apache.flink.streaming.connectors.redis.RedisSink
 
 
 /**
@@ -45,7 +46,6 @@ object C_03StreamApiApp {
 //    val chKeyedStream: KeyedStream[(String, Int), Tuple] = startuplogDstream.map(startuplog => (startuplog.ch, 1)).keyBy(0)
 //
 //    val chSumDstream: DataStream[(String, Int)] = chKeyedStream.reduce((ch1, ch2) => (ch1._1, ch1._2 + ch2._2))
-//    //dstream.print()
 //    chSumDstream.print("开头：").setParallelism(1)
 
     // 将appstore与其他渠道拆分拆分出来  成为两个独立的流
@@ -80,9 +80,32 @@ object C_03StreamApiApp {
     val unionStream: DataStream[StartUpLog] = appleStream.union(otherStream)
     unionStream.print("Union")
 
+    // 将合并流写入到KAFKA中
     val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
     unionStream.map(startUpLog => startUpLog.ch).addSink(kafkaSink)
-    
+
+
+    /**
+     * 统计各个渠道的累计个数
+     */
+    // KeyedStream这种流是有状态的
+    val chKeyedStream: KeyedStream[(String, Int), Tuple] = startuplogDstream.map(startuplog => (startuplog.ch, 1)).keyBy(0)
+
+    val chSumDstream: DataStream[(String, Int)] = chKeyedStream.reduce((ch1, ch2) => (ch1._1, ch1._2 + ch2._2))
+    chSumDstream.print("开头：").setParallelism(1)
+
+    /*
+    centos redis: redis-cli
+    hset channal_sum xiaomi 100
+    hset channal_sum huawei 100
+    keys *
+    hgetall channal_sum
+     */
+    // 把结果存入redis   hset  key:channel_sum   field:  channel   value:  count
+    val redisSink: RedisSink[(String, String)] = MyRedisUtil.getRedisSink()
+    chSumDstream.addSink(redisSink)
+
+
     environment.execute()
   }
 
