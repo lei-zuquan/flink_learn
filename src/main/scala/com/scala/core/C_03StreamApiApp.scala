@@ -81,8 +81,9 @@ object C_03StreamApiApp {
     unionStream.print("Union")
 
     // 将合并流写入到KAFKA中
-    //val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
-    //unionStream.map(startUpLog => startUpLog.ch).addSink(kafkaSink)
+    val kafkaSink: FlinkKafkaProducer011[String] = MyKafkaUtil.getKafkaSink("topic_apple")
+    val mapDataStream: DataStream[String] = unionStream.map(startUpLog => startUpLog.ch)
+    //mapDataStream.addSink(kafkaSink)
 
 
     /**
